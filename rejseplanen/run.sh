@@ -1,5 +1,7 @@
-#!/usr/bin/with-contenv bashio
+#!/usr/bin/env bash
 set -eu
+
+source /usr/lib/bashio/bashio.sh
 
 export REJSEPLANEN_ACCESS_ID="$(bashio::config 'rejseplanen_access_id')"
 export MQTT_HOST="$(bashio::config 'mqtt_host')"
