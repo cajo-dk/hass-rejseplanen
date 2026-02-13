@@ -10,7 +10,7 @@ The add-on fetches departures from Rejseplanen, filters by regional train catego
 hass-rejseplanen/
 ├── repository.yaml
 └── rejseplanen/
-    ├── config.json
+    ├── config.yaml
     ├── Dockerfile
     ├── run.sh
     └── app.py
