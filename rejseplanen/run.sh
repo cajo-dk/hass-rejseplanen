@@ -23,6 +23,7 @@ PY
 }
 
 export REJSEPLANEN_ACCESS_ID="$(read_option rejseplanen_access_id)"
+export REJSEPLANEN_STOP_ID="$(read_option rejseplanen_stop_id)"
 export MQTT_HOST="$(read_option mqtt_host)"
 export MQTT_PORT="$(read_option mqtt_port)"
 export MQTT_TOPIC="$(read_option mqtt_topic)"
@@ -35,6 +36,6 @@ export REJSEPLANEN_MAX_JOURNEYS="$(read_option rejseplanen_max_journeys)"
 export REJSEPLANEN_DURATION="$(read_option rejseplanen_duration)"
 
 while true; do
-  python3 /app/app.py 8695035 --cat-out Re --compact-data --mqtt-on || true
+  python3 /app/app.py "${REJSEPLANEN_STOP_ID:-8695035}" --cat-out Re --compact-data --mqtt-on || true
   sleep 60
 done

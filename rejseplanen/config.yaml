@@ -1,5 +1,5 @@
 name: "Rejseplanen Fetcher"
-version: "1.0.3"
+version: "1.0.4"
 slug: "rejseplanen"
 description: "Fetch Rejseplanen data and publish to MQTT"
 url: "https://github.com/cajo-dk/hass-rejseplanen"
@@ -12,6 +12,7 @@ arch:
   - aarch64
   - armv7
 options:
+  rejseplanen_stop_id: "8695035"
   rejseplanen_access_id: ""
   mqtt_host: ""
   mqtt_port: 1883
@@ -24,6 +25,7 @@ options:
   rejseplanen_max_journeys: 80
   rejseplanen_duration: 60
 schema:
+  rejseplanen_stop_id: str
   rejseplanen_access_id: str
   mqtt_host: str
   mqtt_port: int
