@@ -1,9 +1,0 @@
-services:
-  rejseplanen-publisher:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: rejseplanen-publisher
-    restart: unless-stopped
-    env_file:
-      - $env
