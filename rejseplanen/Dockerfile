@@ -1,8 +1,7 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-RUN apk add --no-cache python3 py3-pip
-RUN pip3 install --no-cache-dir paho-mqtt
+RUN apk add --no-cache python3 py3-paho-mqtt
 
 WORKDIR /app
 COPY app.py /app/app.py
