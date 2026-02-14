@@ -145,7 +145,7 @@ def publish_payload(payload: dict) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fetch Rejseplanen compact departures and publish to MQTT.")
-    parser.add_argument("stop_id", help="Station/stop id, e.g. 8695035")
+    parser.add_argument("stop_id", help="Station/stop id, e.g. 8600626")
     parser.add_argument("--cat-out", default=None, help="Filter by ProductAtStop.catOut, e.g. Re")
     parser.add_argument("--compact-data", action="store_true", help="Output compact dashboard data")
     parser.add_argument("--mqtt-on", action="store_true", help="Publish payload to MQTT")

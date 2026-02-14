@@ -80,7 +80,7 @@ if [ "${POLL_INTERVAL_MINUTES}" -lt 1 ]; then
 fi
 
 while true; do
-  if output="$(python3 /app/app.py "${REJSEPLANEN_STOP_ID:-8695035}" --cat-out Re --compact-data --mqtt-on 2>&1)"; then
+  if output="$(python3 /app/app.py "${REJSEPLANEN_STOP_ID:-8600626}" --cat-out Re --compact-data --mqtt-on 2>&1)"; then
     if [ "${LOG_LEVEL}" = "DEBUG" ] && [ -n "${output}" ]; then
       log DEBUG "Call output: ${output}"
     fi
