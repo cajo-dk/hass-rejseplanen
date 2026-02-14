@@ -12,6 +12,7 @@ hass-rejseplanen/
 └── rejseplanen/
     ├── config.yaml
     ├── Dockerfile
+    ├── find_location_id.py
     ├── run.sh
     └── app.py
 ```
@@ -23,6 +24,23 @@ On each poll interval, the add-on runs:
 ```bash
 python3 /app/app.py 8695035 --cat-out Re --compact-data --mqtt-on
 ```
+
+## Find station IDs
+
+Use `rejseplanen/find_location_id.py` to look up station/stop IDs for `rejseplanen_stop_id`.
+
+Example:
+
+```bash
+python3 rejseplanen/find_location_id.py "København H" --access-id "<your_access_id>"
+```
+
+The script returns JSON with normalized matches and includes `id`/`extId` fields you can use in add-on config.
+
+Access ID resolution order:
+- `--access-id`
+- `REJSEPLANEN_ACCESS_ID` environment variable
+- `$env` or `.env` file in the current directory
 
 ## MQTT payload format
 
