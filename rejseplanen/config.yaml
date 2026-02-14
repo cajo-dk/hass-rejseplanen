@@ -1,5 +1,5 @@
 name: "Rejseplanen Fetcher"
-version: "1.0.4"
+version: "1.1.0"
 slug: "rejseplanen"
 description: "Fetch Rejseplanen data and publish to MQTT"
 url: "https://github.com/cajo-dk/hass-rejseplanen"
@@ -22,8 +22,10 @@ options:
   mqtt_client_id: ""
   mqtt_qos: 0
   mqtt_tls: false
+  log_level: "INFO"
   rejseplanen_max_journeys: 80
   rejseplanen_duration: 60
+  poll_interval_minutes: 60
 schema:
   rejseplanen_stop_id: str
   rejseplanen_access_id: str
@@ -35,5 +37,7 @@ schema:
   mqtt_client_id: str?
   mqtt_qos: int(0,2)
   mqtt_tls: bool
+  log_level: str
   rejseplanen_max_journeys: int(1,500)
   rejseplanen_duration: int(1,1440)
+  poll_interval_minutes: int(1,1440)

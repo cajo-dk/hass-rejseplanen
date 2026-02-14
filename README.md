@@ -2,7 +2,7 @@
 
 Home Assistant add-on repository with one add-on: **Rejseplanen Fetcher**.
 
-The add-on fetches departures from Rejseplanen, filters by regional train category (`catOut=Re`), compacts the data for dashboards, wraps it in a status payload, and publishes it to MQTT every minute.
+The add-on fetches departures from Rejseplanen, filters by regional train category (`catOut=Re`), compacts the data for dashboards, wraps it in a status payload, and publishes it to MQTT on a configurable interval (minimum 1 minute).
 
 ## Repository structure
 
@@ -18,7 +18,7 @@ hass-rejseplanen/
 
 ## What it runs
 
-Every 60 seconds, the add-on runs:
+On each poll interval, the add-on runs:
 
 ```bash
 python3 /app/app.py 8695035 --cat-out Re --compact-data --mqtt-on
@@ -77,8 +77,10 @@ Configure these options in the add-on UI:
 - `mqtt_client_id` (optional)
 - `mqtt_qos` (default: `0`)
 - `mqtt_tls` (default: `false`)
+- `log_level` (default: `INFO`; supported: `DEBUG`, `INFO`, `WARN`, `ERROR`)
 - `rejseplanen_max_journeys` (default: `80`)
 - `rejseplanen_duration` (default: `60`)
+- `poll_interval_minutes` (default: `60`, minimum: `1`)
 
 ## Install in Home Assistant
 
@@ -93,3 +95,4 @@ Configure these options in the add-on UI:
 
 - Local `$env` is ignored in git and not used by Home Assistant add-on runtime.
 - Runtime config comes from Home Assistant add-on options and is exported by `run.sh`.
+- Call output from `app.py` is only written to logs when `log_level=DEBUG`.
