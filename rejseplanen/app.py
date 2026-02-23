@@ -5,6 +5,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -12,6 +13,7 @@ import urllib.request
 from paho.mqtt import publish as mqtt_publish
 
 API_URL = "https://www.rejseplanen.dk/api/departureBoard"
+PART_CANCELLED_NOTE_KEY = "text.realtime.journey.partially.cancelled.between"
 
 
 def parse_departure_datetime(date_value: object, time_value: object) -> dt.datetime | None:
@@ -23,6 +25,68 @@ def parse_departure_datetime(date_value: object, time_value: object) -> dt.datet
         except ValueError:
             continue
     return None
+
+
+def listify(value: object) -> list:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def extract_note_text(note: dict) -> str | None:
+    for key in ("txtN", "value", "text"):
+        value = note.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def parse_partial_cancellation(note_text: str) -> tuple[str, str] | None:
+    # Example: "... annulleret mellem København H og Østerport St.. ..."
+    match = re.search(r"mellem\s+(.+?)\s+og\s+(.+?)(?:\.+\s|$)", note_text, flags=re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(1).strip(), match.group(2).strip()
+
+
+def extract_destination_update(dep: dict) -> dict:
+    scheduled_direction = dep.get("direction")
+    actual_direction = scheduled_direction
+    destination_changed = False
+    cancelled_between_from = None
+    cancelled_between_to = None
+    service_message = None
+
+    notes = dep.get("Notes") if isinstance(dep.get("Notes"), dict) else {}
+    for note in listify(notes.get("Note")):
+        if not isinstance(note, dict):
+            continue
+        note_key = note.get("key")
+        note_type = note.get("type")
+        note_text = extract_note_text(note)
+
+        if not service_message and isinstance(note_text, str) and note_type == "R":
+            service_message = note_text
+
+        if note_key != PART_CANCELLED_NOTE_KEY or not isinstance(note_text, str):
+            continue
+        parsed = parse_partial_cancellation(note_text)
+        if not parsed:
+            continue
+        cancelled_between_from, cancelled_between_to = parsed
+        destination_changed = True
+        actual_direction = cancelled_between_from
+
+    return {
+        "scheduledDirection": scheduled_direction,
+        "actualDirection": actual_direction,
+        "destinationChanged": destination_changed,
+        "cancelledBetweenFrom": cancelled_between_from,
+        "cancelledBetweenTo": cancelled_between_to,
+        "serviceMessage": service_message,
+    }
 
 
 def compact_departure_data(payload: dict, cat_out_filter: str | None = None) -> list[dict]:
@@ -61,10 +125,19 @@ def compact_departure_data(payload: dict, cat_out_filter: str | None = None) -> 
             if planned_dt and actual_dt and actual_dt > planned_dt:
                 status = "delayed"
 
+        destination_update = extract_destination_update(dep)
+
         rows.append(
             {
                 "trainId": dep.get("name"),
                 "direction": dep.get("direction"),
+                "scheduledDirection": destination_update["scheduledDirection"],
+                "actualDirection": destination_update["actualDirection"],
+                "destinationChanged": destination_update["destinationChanged"],
+                "cancelledBetweenFrom": destination_update["cancelledBetweenFrom"],
+                "cancelledBetweenTo": destination_update["cancelledBetweenTo"],
+                "partCancelled": bool(dep.get("partCancelled", False)),
+                "serviceMessage": destination_update["serviceMessage"],
                 "departs": dep.get("stop"),
                 "plannedDate": planned_date,
                 "plannedTime": planned_time,

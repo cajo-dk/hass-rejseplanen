@@ -82,6 +82,13 @@ MQTT publishing uses `retain=true`.
 Each item in `items` contains:
 - `trainId`
 - `direction`
+- `scheduledDirection`
+- `actualDirection`
+- `destinationChanged`
+- `cancelledBetweenFrom`
+- `cancelledBetweenTo`
+- `partCancelled`
+- `serviceMessage`
 - `departs`
 - `plannedDate`
 - `plannedTime`
