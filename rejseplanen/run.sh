@@ -69,6 +69,42 @@ log() {
   printf '%s [%s] %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${level}" "$*"
 }
 
+mask_value() {
+  value="$1"
+  if [ -z "${value}" ]; then
+    printf '%s' '<empty>'
+    return 0
+  fi
+  python3 - "$value" <<'PY'
+import sys
+
+value = sys.argv[1]
+if len(value) <= 8:
+    print("*" * len(value))
+else:
+    print(f"{value[:4]}...{value[-4:]}")
+PY
+}
+
+extract_payload_error() {
+  payload="$1"
+  python3 - "$payload" <<'PY'
+import json
+import sys
+
+raw = sys.argv[1]
+try:
+    parsed = json.loads(raw)
+except json.JSONDecodeError:
+    print("")
+    raise SystemExit(0)
+
+error = parsed.get("error")
+if isinstance(error, str) and error.strip():
+    print(error.strip())
+PY
+}
+
 case "${POLL_INTERVAL_MINUTES:-}" in
   ''|*[!0-9]*)
     POLL_INTERVAL_MINUTES=60
@@ -79,6 +115,9 @@ if [ "${POLL_INTERVAL_MINUTES}" -lt 1 ]; then
   POLL_INTERVAL_MINUTES=1
 fi
 
+log INFO \
+  "Starting with stop_id=${REJSEPLANEN_STOP_ID:-8600626} mqtt_host=${MQTT_HOST:-<empty>} mqtt_port=${MQTT_PORT:-1883} mqtt_topic=${MQTT_TOPIC:-<empty>} mqtt_user=$(mask_value "${MQTT_USERNAME:-}") access_id=$(mask_value "${REJSEPLANEN_ACCESS_ID:-}") interval_min=${POLL_INTERVAL_MINUTES} max_journeys=${REJSEPLANEN_MAX_JOURNEYS:-80} duration=${REJSEPLANEN_DURATION:-60} log_level=${LOG_LEVEL}"
+
 while true; do
   if output="$(python3 /app/app.py "${REJSEPLANEN_STOP_ID:-8600626}" --cat-out Re --compact-data --mqtt-on 2>&1)"; then
     if [ "${LOG_LEVEL}" = "DEBUG" ] && [ -n "${output}" ]; then
@@ -86,9 +125,14 @@ while true; do
     fi
   else
     rc=$?
-    log WARN "Call failed with exit code ${rc}."
-    if [ "${LOG_LEVEL}" = "DEBUG" ] && [ -n "${output}" ]; then
-      log DEBUG "Call output: ${output}"
+    error_message="$(extract_payload_error "${output}")"
+    if [ -n "${error_message}" ]; then
+      log WARN "Call failed with exit code ${rc}: ${error_message}"
+    else
+      log WARN "Call failed with exit code ${rc}."
+    fi
+    if [ -n "${output}" ]; then
+      log WARN "Call output: ${output}"
     fi
   fi
   sleep "$((POLL_INTERVAL_MINUTES * 60))"
